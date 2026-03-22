@@ -1,0 +1,504 @@
+## Архитектура браузерной игры **«Судебный процесс»**
+
+Ниже приведена **структура проекта и логическая модель**, ориентированная на простую реализацию (JS / TypeScript). Архитектура рассчитана на **процедурную генерацию дел**, масштабирование и сохранение прогресса.
+
+---
+
+# 1. Общая архитектура
+
+```
+Client (Browser)
+│
+├── UI Layer
+│
+├── Game Logic
+│
+├── Case Generator
+│
+├── Evidence Engine
+│
+├── Contradiction Analyzer
+│
+└── Save System
+```
+
+---
+
+# 2. Структура проекта
+
+```
+/court-game
+│
+├── index.html
+├── style.css
+├── main.js
+│
+├── /core
+│     GameEngine.js
+│     CaseManager.js
+│
+├── /models
+│     Case.js
+│     Witness.js
+│     Evidence.js
+│     Testimony.js
+│
+├── /systems
+│     CaseGenerator.js
+│     ContradictionSystem.js
+│     CredibilitySystem.js
+│     VerdictSystem.js
+│
+├── /data
+│     crimes.json
+│     witnesses.json
+│     evidence.json
+│
+└── /ui
+      CaseView.js
+      EvidenceView.js
+      WitnessView.js
+      VerdictView.js
+```
+
+---
+
+# 3. Основные игровые сущности (Models)
+
+## Case (дело)
+
+```javascript
+class Case {
+    constructor(id, crimeType, defendant) {
+        this.id = id
+        this.crimeType = crimeType
+        this.defendant = defendant
+        this.witnesses = []
+        this.evidence = []
+        this.testimonies = []
+        this.truth = null
+    }
+}
+```
+
+---
+
+## Witness (свидетель)
+
+```javascript
+class Witness {
+    constructor(name, credibility) {
+        this.name = name
+        this.credibility = credibility
+        this.testimonies = []
+    }
+}
+```
+
+Параметры:
+
+```
+credibility
+bias
+relationship
+stress
+lyingProbability
+```
+
+---
+
+## Evidence (доказательство)
+
+```javascript
+class Evidence {
+    constructor(type, description) {
+        this.type = type
+        this.description = description
+        this.reliability = 0.8
+    }
+}
+```
+
+Типы:
+
+```
+physical
+video
+expert
+document
+digital
+```
+
+---
+
+## Testimony (показания)
+
+```javascript
+class Testimony {
+    constructor(witnessId, statement) {
+        this.witnessId = witnessId
+        this.statement = statement
+        this.truth = null
+    }
+}
+```
+
+---
+
+# 4. Генератор дел
+
+Модуль:
+
+```
+CaseGenerator.js
+```
+
+Функции:
+
+```
+generateCrime()
+generateWitnesses()
+generateEvidence()
+generateTruth()
+generateContradictions()
+```
+
+---
+
+## Пример генерации
+
+```javascript
+function generateCase() {
+
+    let crime = randomCrime()
+
+    let defendant = generatePerson()
+
+    let witnesses = generateWitnesses()
+
+    let evidence = generateEvidence()
+
+    let truth = generateTruth()
+
+    return new Case(crime, defendant, witnesses, evidence, truth)
+
+}
+```
+
+---
+
+# 5. Типы преступлений
+
+```
+theft
+robbery
+fraud
+assault
+accident
+cybercrime
+```
+
+---
+
+# 6. Генерация правды (истины дела)
+
+Игра должна **знать правильный сценарий**.
+
+```
+TRUE SCENARIO
+│
+├ преступник
+├ мотив
+├ действия
+└ улики
+```
+
+Пример:
+
+```
+Иван украл телефон
+в 14:32
+в кафе
+```
+
+---
+
+# 7. Генерация ложных элементов
+
+Для сложности:
+
+```
+false witness
+misleading evidence
+mistaken testimony
+```
+
+---
+
+# 8. Система противоречий
+
+Модуль:
+
+```
+ContradictionSystem.js
+```
+
+---
+
+## Алгоритм
+
+Сравнение фактов.
+
+```
+location
+time
+object
+action
+appearance
+```
+
+---
+
+### Пример
+
+```
+Witness A:
+"Он был в красной куртке"
+
+Witness B:
+"Он был в синей куртке"
+```
+
+→ конфликт
+
+---
+
+### Псевдокод
+
+```javascript
+function findContradictions(testimonies) {
+
+    contradictions = []
+
+    for each testimonyA
+        for each testimonyB
+
+            if factConflict(A, B)
+                contradictions.push(A,B)
+
+    return contradictions
+}
+```
+
+---
+
+# 9. Система доверия
+
+```
+CredibilitySystem.js
+```
+
+Факторы:
+
+```
+pastCrime
+relationToVictim
+stress
+alcohol
+consistency
+```
+
+---
+
+### Формула
+
+```
+credibility =
+base
++ consistencyBonus
+- contradictionPenalty
+- biasPenalty
+```
+
+---
+
+# 10. Интерфейс
+
+UI состоит из **5 экранов**
+
+```
+CASE INFO
+WITNESSES
+EVIDENCE
+ANALYSIS
+VERDICT
+```
+
+---
+
+### Пример интерфейса
+
+```
+---------------------------
+CASE #142
+Crime: Theft
+Defendant: Ivan Petrov
+---------------------------
+
+Witnesses
+Evidence
+Analysis
+Verdict
+```
+
+---
+
+# 11. Система анализа игроком
+
+Игрок может:
+
+```
+mark contradiction
+highlight fact
+flag suspicious
+```
+
+---
+
+### Хранение
+
+```
+playerNotes
+playerSuspicions
+playerFlags
+```
+
+---
+
+# 12. Система вердикта
+
+Модуль:
+
+```
+VerdictSystem.js
+```
+
+---
+
+## Варианты
+
+```
+guilty
+not_guilty
+insufficient_evidence
+```
+
+---
+
+## Проверка
+
+```
+if playerVerdict == truth
+    success
+else
+    fail
+```
+
+---
+
+# 13. Система сложности
+
+Параметры:
+
+```
+number_of_witnesses
+number_of_evidence
+false_clues
+contradictions
+```
+
+---
+
+### Пример
+
+| уровень | свидетели | улики | ложные |
+| ------- | --------- | ----- | ------ |
+| easy    | 2         | 2     | 0      |
+| medium  | 4         | 4     | 1      |
+| hard    | 6         | 6     | 3      |
+
+---
+
+# 14. Система карьеры
+
+Игрок продвигается:
+
+```
+Junior Judge
+District Judge
+Regional Judge
+Supreme Judge
+```
+
+---
+
+# 15. Система сохранения
+
+```
+LocalStorage
+```
+
+или
+
+```
+IndexedDB
+```
+
+---
+
+### Структура
+
+```json
+{
+  "level": 3,
+  "casesSolved": 28,
+  "accuracy": 0.82
+}
+```
+
+---
+
+# 16. Поток игры
+
+```
+Generate Case
+     ↓
+Show Materials
+     ↓
+Player Analysis
+     ↓
+Verdict
+     ↓
+Result
+     ↓
+Next Case
+```
+
+---
+
+# 17. Производительность
+
+Игра лёгкая:
+
+```
+~200–400 KB
+без WebGL
+```
+
+Работает даже на телефонах.
+
+---
+
+
+
+

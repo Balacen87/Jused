@@ -1,0 +1,356 @@
+Психологическая модель свидетелей (NPC-подобная система)
+
+Чтобы свидетели в игре выглядели живыми и непредсказуемыми, их нужно моделировать не как статические источники фактов, а как агентов со своей психикой.
+Каждый свидетель имеет:
+
+характер
+
+мотивацию
+
+уровень страха / давления
+
+стратегию поведения
+
+вероятность и тип лжи
+
+Фактически это упрощённая AI-модель NPC, применяемая к судебным показаниям.
+
+1. Архитектура психологической системы
+WitnessAI
+│
+├ Personality Model
+├ Motivation Model
+├ Memory Model
+├ Emotional State
+├ Lie Strategy Engine
+└ Dialogue Behavior
+2. Структура данных свидетеля
+type WitnessPsychology = {
+  personality: Personality
+  motivation: Motivation
+  emotionalState: EmotionalState
+  lieStrategy: LieStrategy
+  memoryModel: MemoryModel
+}
+3. Модель характера (Personality)
+
+Лучше всего использовать упрощённую Big Five модель.
+
+type Personality = {
+  honesty: number
+  courage: number
+  anxiety: number
+  empathy: number
+  impulsivity: number
+}
+
+Пример:
+
+{
+  "honesty": 0.8,
+  "courage": 0.4,
+  "anxiety": 0.6,
+  "empathy": 0.5,
+  "impulsivity": 0.3
+}
+
+Влияние:
+
+параметр	эффект
+honesty	вероятность говорить правду
+courage	сопротивление давлению
+anxiety	вероятность путаницы
+empathy	защита жертвы
+impulsivity	спонтанные ответы
+4. Модель мотивации
+
+Свидетель может иметь личный интерес.
+
+type Motivation = {
+  protectDefendant: number
+  protectVictim: number
+  selfProtection: number
+  revenge: number
+  greed: number
+  justice: number
+}
+
+Пример:
+
+{
+  "protectDefendant": 0.7,
+  "protectVictim": 0.1,
+  "selfProtection": 0.2,
+  "revenge": 0,
+  "greed": 0,
+  "justice": 0.3
+}
+5. Эмоциональное состояние
+
+Состояние может меняться в ходе допроса.
+
+type EmotionalState = {
+  stress: number
+  fear: number
+  anger: number
+  fatigue: number
+  confidence: number
+}
+
+Эти параметры изменяются:
+
+при давлении
+
+при очной ставке
+
+при противоречиях
+
+6. Модель памяти
+
+Даже честный свидетель может ошибаться.
+
+type MemoryModel = {
+  accuracy: number
+  timeDistortion: number
+  detailLoss: number
+  faceRecognition: number
+}
+
+Пример:
+
+{
+  "accuracy": 0.65,
+  "timeDistortion": 0.2,
+  "detailLoss": 0.4,
+  "faceRecognition": 0.5
+}
+7. Типы стратегий лжи
+
+Если свидетель решает лгать, он выбирает стратегию.
+
+deny
+minimize
+misidentify
+shift_blame
+partial_truth
+1. Deny
+"Я ничего не видел."
+2. Minimize
+"Он просто стоял рядом."
+3. Misidentify
+"Это был другой человек."
+4. Shift blame
+"Я видел, как другой мужчина взял телефон."
+5. Partial truth
+"Я видел его возле стола."
+(но не говорит, что он взял телефон)
+8. Алгоритм выбора стратегии
+function chooseLieStrategy(witness){
+
+    if(witness.motivation.protectDefendant > 0.6)
+        return "deny"
+
+    if(witness.motivation.selfProtection > 0.5)
+        return "partial_truth"
+
+    if(witness.personality.impulsivity > 0.6)
+        return "misidentify"
+
+    return randomStrategy()
+}
+9. Алгоритм принятия решения говорить правду
+
+Свидетель взвешивает факторы.
+
+truthScore =
+honesty
++ justice
+- fear
+- protectDefendant
+- greed
+Псевдокод
+function decideTruth(witness){
+
+    score =
+      witness.personality.honesty
+      + witness.motivation.justice
+      - witness.emotionalState.fear
+      - witness.motivation.protectDefendant
+
+    if(score > 0.5)
+        return "truth"
+
+    return "lie"
+}
+10. Система поведения на допросе
+
+Свидетель может:
+
+говорить уверенно
+сомневаться
+избегать деталей
+менять показания
+нервничать
+Пример генерации ответа
+function generateAnswer(statement, witness){
+
+    if(witness.emotionalState.stress > 0.7)
+        return "Я… не уверен… кажется…"
+
+    if(witness.personality.courage > 0.7)
+        return "Я абсолютно уверен."
+
+    return statement
+}
+11. Реакция на давление
+
+Если игрок задаёт сложные вопросы:
+
+stress ↑
+fear ↑
+confidence ↓
+
+Это может привести к:
+
+изменению показаний
+
+признанию лжи
+
+12. Очная ставка
+
+Когда два свидетеля сталкиваются.
+
+Алгоритм:
+
+function confrontation(witnessA, witnessB){
+
+    if(witnessA.fear > witnessB.courage)
+        witnessA.changeStatement()
+
+}
+13. Эволюция показаний
+
+Свидетель может уточнять или менять детали.
+
+Пример:
+
+1 допрос:
+"Он был в красной куртке"
+
+2 допрос:
+"Наверное, темная…"
+14. Поведенческие признаки лжи
+
+Игрок может заметить:
+
+признак	значение
+нервозность	высокая вероятность лжи
+уход от деталей	скрытие фактов
+изменение показаний	слабая память или ложь
+агрессия	давление
+15. Уровни сложности
+Easy
+
+большинство честные
+
+ошибки памяти
+
+Medium
+
+несколько лжецов
+
+сложные противоречия
+
+Hard
+
+несколько стратегий лжи
+
+взаимные обвинения
+
+16. Пример реального свидетеля
+{
+  "personality": {
+    "honesty": 0.3,
+    "courage": 0.4,
+    "anxiety": 0.7
+  },
+  "motivation": {
+    "protectDefendant": 0.8
+  },
+  "memory": {
+    "accuracy": 0.6
+  }
+}
+
+Поведение:
+
+защищает подсудимого
+
+нервничает
+
+может лгать
+
+17. Итоговый алгоритм поведения
+function generateWitnessStatement(witness, trueFact){
+
+    decision = decideTruth(witness)
+
+    if(decision == "truth")
+        return generateTrueStatement(trueFact)
+
+    strategy = chooseLieStrategy(witness)
+
+    return generateLie(strategy, trueFact)
+
+}
+18. Почему эта модель работает
+
+Она создаёт:
+
+реалистичные показания
+
+психологию персонажей
+
+вариативность
+
+интересный анализ
+
+Игрок начинает думать:
+
+«Он врёт? Или просто путается?»
+
+19. Возможное развитие
+
+Добавить:
+
+репутацию свидетеля
+
+судимости
+
+давление адвокатов
+
+коррупцию
+
+психологические профили
+
+20. Самая мощная версия системы
+
+Свидетели могут иметь социальные отношения.
+
+friend
+enemy
+colleague
+family
+stranger
+
+Это создаёт:
+
+коллективные ложные показания
+
+конфликт интересов
+
+сложные интриги
+
+Итог
+
+Психологическая модель превращает свидетелей из простых текстовых источников в NPC с личностью, мотивацией и стратегией поведения, что делает судебные дела намного более интересными и реалистичными.

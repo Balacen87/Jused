@@ -1,0 +1,525 @@
+## Социальная сеть персонажей (граф отношений) для генерации интриг и конфликтов
+
+Чтобы судебные дела выглядели **реалистичными**, персонажи должны существовать не изолированно, а в **социальной сети отношений**.
+Такой граф позволяет автоматически генерировать:
+
+* конфликты
+* мотивы преступлений
+* ложные показания
+* алиби
+* скрытые связи
+
+Это очень похожая система на **NPC-социальные графы в симуляторах жизни**.
+
+---
+
+# 1. Основная концепция
+
+Все персонажи связаны отношениями.
+
+```text
+Character Graph
+│
+├ nodes → персонажи
+└ edges → отношения
+```
+
+Пример:
+
+```text
+Иван ───── друг ───── Сергей
+ │
+ │ конфликт
+ │
+Анна
+```
+
+Такой граф становится **основой для генерации дел**.
+
+---
+
+# 2. Структура узла (персонажа)
+
+```typescript
+type Character = {
+  id: string
+  name: string
+  age: number
+  occupation: string
+  personality: Personality
+  socialStatus: number
+}
+```
+
+Дополнительные параметры:
+
+```text
+income
+reputation
+criminalHistory
+stress
+```
+
+---
+
+# 3. Структура связи (отношения)
+
+Каждая связь имеет **тип и силу**.
+
+```typescript
+type Relationship = {
+  sourceId: string
+  targetId: string
+  type: RelationshipType
+  strength: number
+  trust: number
+  hostility: number
+}
+```
+
+---
+
+# 4. Типы отношений
+
+Минимальный набор:
+
+```text
+friend
+family
+colleague
+romantic
+neighbor
+enemy
+business_partner
+debtor
+```
+
+Расширенный:
+
+```text
+mentor
+rival
+ex_partner
+blackmailer
+secret_affair
+```
+
+---
+
+# 5. Пример графа
+
+```text
+Анна ─── жена ─── Иван
+  │
+  │ коллега
+  │
+Сергей ─── друг ─── Иван
+  │
+  │ конфликт
+  │
+Олег
+```
+
+Из этого уже может появиться:
+
+* ревность
+* ложные показания
+* алиби
+* подставы
+
+---
+
+# 6. Хранение графа
+
+В простейшем варианте:
+
+```typescript
+type SocialGraph = {
+  characters: Character[]
+  relationships: Relationship[]
+}
+```
+
+---
+
+# 7. Генерация графа
+
+Алгоритм:
+
+```text
+1 создать N персонажей
+2 назначить роли
+3 создать базовые отношения
+4 усилить некоторые связи
+5 добавить скрытые связи
+```
+
+---
+
+### Пример генерации
+
+```javascript
+function generateSocialGraph(characters){
+
+    relationships = []
+
+    for each pair (A,B)
+
+        if random() < 0.2
+            relationships.push(createRelationship(A,B))
+
+    return relationships
+}
+```
+
+---
+
+# 8. Вес связи
+
+Каждая связь имеет **силу**.
+
+```text
+strength 0–1
+```
+
+Пример:
+
+```text
+friendship 0.9
+conflict 0.7
+```
+
+Это влияет на:
+
+* вероятность лжи
+* мотив преступления
+
+---
+
+# 9. Генерация конфликтов
+
+Конфликт возникает если:
+
+```text
+hostility > threshold
+```
+
+Алгоритм:
+
+```javascript
+if(relationship.hostility > 0.6)
+    generateConflict()
+```
+
+---
+
+### Типы конфликтов
+
+```text
+financial
+romantic
+professional
+personal insult
+property dispute
+```
+
+---
+
+# 10. Генерация мотивов преступления
+
+Мотив определяется связями.
+
+Пример:
+
+```text
+enemy + debt → revenge
+romantic triangle → jealousy
+business partner + money → fraud
+```
+
+---
+
+### Алгоритм
+
+```javascript
+function generateMotive(graph){
+
+    relation = randomConflictRelation(graph)
+
+    if(relation.type == "enemy")
+        return "revenge"
+
+    if(relation.type == "debtor")
+        return "financial"
+
+}
+```
+
+---
+
+# 11. Генерация ложных свидетелей
+
+Если свидетель связан с подсудимым:
+
+```text
+friend
+family
+partner
+```
+
+то вероятность лжи увеличивается.
+
+Алгоритм:
+
+```javascript
+if(relation.type == "friend")
+    witness.lieProbability += 0.3
+```
+
+---
+
+# 12. Генерация алиби
+
+Если персонажи дружат:
+
+```text
+Иван ─ друг ─ Сергей
+```
+
+Сергей может дать алиби.
+
+```text
+"Он был со мной."
+```
+
+Но система может определить:
+
+```text
+ложное алиби
+```
+
+---
+
+# 13. Скрытые связи
+
+Самое интересное — **тайные отношения**.
+
+Пример:
+
+```text
+secret affair
+hidden debt
+blackmail
+```
+
+Эти связи не известны игроку сразу.
+
+---
+
+### Структура
+
+```typescript
+type HiddenRelation = {
+  relation: Relationship
+  hidden: boolean
+}
+```
+
+---
+
+# 14. Интриги
+
+Интрига появляется, когда:
+
+```text
+A любит B
+B любит C
+C ненавидит A
+```
+
+Это автоматически создаёт конфликт.
+
+---
+
+# 15. Алгоритм генерации интриг
+
+```javascript
+function detectIntrigue(graph){
+
+    for each triangle (A,B,C)
+
+        if A loves B
+        and B loves C
+        and C hates A
+
+            createIntrigue()
+}
+```
+
+---
+
+# 16. Социальные группы
+
+Персонажи могут объединяться.
+
+Типы:
+
+```text
+family
+workplace
+friends group
+neighborhood
+```
+
+Это влияет на:
+
+* коллективные алиби
+* ложные показания
+
+---
+
+# 17. Пример дела из графа
+
+Граф:
+
+```text
+Иван ─ муж ─ Анна
+Анна ─ роман ─ Сергей
+Иван ─ конфликт ─ Сергей
+```
+
+Возможный сюжет:
+
+```text
+Иван нападает на Сергея
+Анна лжёт, чтобы защитить любовника
+```
+
+---
+
+# 18. Влияние на показания
+
+Если связь сильная:
+
+```text
+strength > 0.7
+```
+
+то:
+
+```text
+вероятность защиты
+```
+
+увеличивается.
+
+---
+
+# 19. Динамическое изменение графа
+
+После событий отношения могут меняться.
+
+```text
+доверие ↓
+враждебность ↑
+```
+
+Это создаёт эволюцию мира.
+
+---
+
+# 20. Алгоритм обновления отношений
+
+```javascript
+function updateRelationship(rel, event){
+
+    if(event == "betrayal")
+        rel.hostility += 0.3
+
+    if(event == "help")
+        rel.trust += 0.2
+}
+```
+
+---
+
+# 21. Масштаб
+
+Даже небольшой граф может создать огромную вариативность.
+
+Например:
+
+```text
+50 персонажей
+300 отношений
+```
+
+Это уже тысячи возможных интриг.
+
+---
+
+# 22. Визуализация
+
+Можно отображать:
+
+```text
+узлы — персонажи
+линии — отношения
+цвет — тип связи
+толщина — сила
+```
+
+---
+
+# 23. Оптимизация
+
+Чтобы генерация дел была быстрой:
+
+* хранить **матрицу отношений**
+* индексировать **конфликты**
+
+---
+
+# 24. Итоговый алгоритм
+
+```javascript
+function generateCaseFromSocialGraph(graph){
+
+    conflict = pickConflict(graph)
+
+    suspects = findConnectedCharacters(conflict)
+
+    motive = deriveMotive(conflict)
+
+    witnesses = findNearbyCharacters(conflict)
+
+    return buildCase(conflict, suspects, witnesses)
+
+}
+```
+
+---
+
+# 25. Почему этот подход мощный
+
+Потому что:
+
+* отношения создают мотивы
+* мотивы создают преступления
+* преступления создают дела
+
+Игрок ощущает **живой мир**, а не случайные события.
+
+---
+
+## Итог
+
+Социальный граф превращает генератор дел из случайного набора улик в **симуляцию общества**, где:
+
+* персонажи связаны
+* отношения влияют на показания
+* конфликты рождают преступления
+
+---
+
+

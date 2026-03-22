@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Expertise System — Тесты</title>
+<style>
+  body { font-family: 'Segoe UI', sans-serif; background: #0e1117; color: #cdd6f4; margin: 0; padding: 24px; }
+  h1   { color: #89b4fa; margin-bottom: 4px; }
+  h2   { margin-top: 0; }
+  #results { margin-top: 16px; max-width: 860px; }
+  button { background: #89b4fa; color: #1e1e2e; border: none; padding: 10px 28px;
+           font-size: 15px; font-weight: 700; border-radius: 8px; cursor: pointer; margin-bottom: 16px; }
+  button:hover { background: #b4befe; }
+  #log  { font-size: 13px; font-family: monospace; }
+</style>
+</head>
+<body>
+<h1>🧪 ExpertiseSystem — Browser Test Runner</h1>
+<p style="color:#6c7086">Запускает все тесты прямо в браузере. Открыт через python HTTP server.</p>
+<button onclick="run()">▶ Запустить тесты</button>
+<div id="results"></div>
+<div id="log"></div>
+
+<script type="module">
+import { renderResults } from './ExpertiseTests.js?v=2';
+import { runSimulationTests } from './SimulationEngineTests.js?v=2';
+
+window.run = async function() {
+    document.getElementById('results').innerHTML = '<p style="color:#f9e2af">⏳ Запуск...</p>';
+    
+    // Запускаем новые тесты Simulation Engine
+    const simStats = runSimulationTests();
+
+    // Тесты Expertise выполняются при импорте; renderResults отображает накопленный лог
+    const stats = renderResults(document.getElementById('results'));
+    
+    const totalPassed = stats.passed + (simStats ? simStats.passed : 0);
+    const total = stats.total + (simStats ? simStats.passed + simStats.failed : 0);
+    
+    document.title = `✅ ${totalPassed}/${total} тестов пройдено`;
+    
+    if (simStats && document.getElementById('log')) {
+        const logHtml = simStats.details.map(d => `<div style="color:${d.ok ? '#22c55e' : '#ef4444'}">${d.ok ? '✓' : '✗'} ${d.name}</div>`).join('');
+        document.getElementById('log').innerHTML += `<div style="margin-top:20px; border-top:1px solid #333; padding-top:10px;"><b>Simulation Engine Tests:</b><br>${logHtml}</div>`;
+    }
+};
+</script>
+</body>
+</html>

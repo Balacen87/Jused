@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Судебный процесс — Симулятор судьи</title>
+    <link rel="stylesheet" href="style.css?v=26">
+
+
+
+
+
+</head>
+
+<body>
+    <!-- Главное Меню -->
+    <div id="main-menu" class="main-menu-overlay active">
+        <div class="menu-container">
+            <img src="data/Images/Jusedsim.png" alt="Судебный Процесс - Симулятор судьи"
+                style="max-width: 100%; height: auto; max-height: 350px; margin-bottom: 30px; filter: drop-shadow(0 0 10px rgba(0,0,0,0.5));">
+
+            <div class="menu-buttons">
+                <button id="btn-new-game" class="menu-btn">Начать новую карьеру</button>
+                <button id="btn-continue-game" class="menu-btn">Продолжить процесс</button>
+                <button id="btn-help" class="menu-btn">Должностная инструкция</button>
+                <button id="btn-exit" class="menu-btn">Завершить смену</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="judge-office" style="display:none;"></div>
+
+    <div id="app" style="display: none;">
+        <header>
+            <h1>Судебный процесс</h1>
+            <div id="case-header-info">
+                <!-- Информация о текущем деле будет вставлена сюда -->
+            </div>
+        </header>
+
+        <!-- Навигация: 2 ряда -->
+        <nav class="tabs">
+            <!-- Ряд 1: Материалы дела -->
+            <div class="tab-row tab-row-1">
+                <span class="tab-row-label">Расследование</span>
+                <button class="tab-btn active" data-tab="materialy">📁 Дело</button>
+                <button class="tab-btn" data-tab="obvinenie">Обвинение</button>
+                <button class="tab-btn" data-tab="zaschita">Защита</button>
+                <button class="tab-btn" data-tab="svideteli">Свидетели</button>
+                <button class="tab-btn" data-tab="doprosy">🎙️ Допросы</button>
+                <button class="tab-btn" data-tab="uliki">Улики</button>
+                <button class="tab-btn" data-tab="compare">⚖️ Сравнение</button>
+                <button class="tab-btn" data-tab="alibi">🔎 Алиби</button>
+                <button class="tab-btn" data-tab="expertiza">Экспертизы</button>
+            </div>
+            <!-- Ряд 2: Участники и итог -->
+            <div class="tab-row tab-row-2">
+                <span class="tab-row-label">Участники</span>
+                <button class="tab-btn" data-tab="suspect">🚨 Подозреваемый</button>
+                <button class="tab-btn" data-tab="victim">👤 Потерпевший</button>
+                <button class="tab-btn" data-tab="medexpert">🏥 Медэкспертиза</button>
+                <button class="tab-btn" data-tab="cabinet">Кабинет судьи</button>
+                <button class="tab-btn tab-verdict" data-tab="verdict">⚖ ВЕРДИКТ</button>
+                <button class="tab-btn tab-dev" data-tab="tests" title="Dev-панель">🧪</button>
+            </div>
+        </nav>
+
+        <main id="content-area">
+            <!-- Контент вкладок будет динамически меняться -->
+        </main>
+
+        <aside id="sidebar">
+            <h3>Материалы дела</h3>
+            <div id="mini-map-contradictions">
+                <!-- Граф противоречий или список пометок -->
+            </div>
+        </aside>
+
+        <footer>
+            <div id="game-status">Инициализация...</div>
+        </footer>
+    </div>
+
+
+    <script>
+        // Диагностика: перехватываем ошибки загрузки ES-модулей
+        window.addEventListener('error', (e) => {
+            document.getElementById('game-status').textContent = '❌ ' + (e.message || e.type);
+            const c = document.getElementById('content-area');
+            if (c) c.innerHTML = `<div style="padding:20px;color:#ef4444;font-family:monospace;"><h2>❌ Ошибка загрузки</h2><p>${e.message}</p><pre>${e.filename}:${e.lineno}</pre></div>`;
+            console.error('[global error]', e.message, e.filename, e.lineno);
+        });
+        window.addEventListener('unhandledrejection', (e) => {
+            document.getElementById('game-status').textContent = '❌ ' + e.reason;
+            const c = document.getElementById('content-area');
+            if (c) c.innerHTML = `<div style="padding:20px;color:#ef4444;font-family:monospace;"><h2>❌ Async ошибка</h2><pre>${e.reason?.stack ?? e.reason}</pre></div>`;
+            console.error('[unhandledrejection]', e.reason);
+        });
+    </script>
+    <script type="module" src="main.js?v=12"></script>
+
+</body>
+
+</html>
