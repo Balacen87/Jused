@@ -9,6 +9,30 @@ const MONTH_NAMES_RU = ['Январь','Февраль','Март','Апрель
                         'Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
 const DAY_NAMES_SHORT = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
 
+/** Русские названия типов преступлений (fallback если label не задан) */
+const TYPE_LABELS_RU = {
+    murder:           'Убийство',
+    theft:            'Кража',
+    vehicle_theft:    'Угон ТС',
+    fraud:            'Мошенничество',
+    corruption:       'Коррупция',
+    assault:          'Нападение',
+    hooliganism:      'Хулиганство',
+    extortion:        'Вымогательство',
+    shoplifting:      'Магазинная кража',
+    embezzlement:     'Растрата',
+    drug_trafficking: 'Наркоторговля',
+    bribery:          'Взятка',
+    arson:            'Поджог',
+    identity_theft:   'Подделка документов',
+    blackmail:        'Шантаж',
+    forgery:          'Подлог',
+    domestic_violence:'Дом. насилие',
+    robbery:          'Грабёж',
+    vandalism:        'Вандализм',
+    tax_evasion:      'Уклонение от налогов',
+};
+
 export class JudgeOfficeView {
 
     /**
@@ -43,19 +67,26 @@ export class JudgeOfficeView {
     }
 
     static show() {
-        const el = this._container;
-        el.style.display = 'flex';
-        el.style.cssText = `
-            display:flex; flex-direction:column; min-height:100vh;
-            background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);
-            font-family:'Inter',sans-serif; color:#e2e8f0;
-        `;
+        // Скрываем всё, кроме кабинета
+        const app  = document.getElementById('app');
+        const menu = document.getElementById('main-menu');
+        if (app)  app.style.display  = 'none';
+        if (menu) menu.style.display = 'none';
+
+        // Активируем кабинет через CSS-класс
+        this._container.classList.add('active');
+        this._container.style.display = 'none'; // сброс инлайна, класс управляет дисплеем
+        void this._container.offsetWidth;       // reflow
+        this._container.style.display = '';     // отдаём управление классу
+
         this._render();
         this._clock.startTick();
     }
 
     static hide() {
-        if (this._container) this._container.style.display = 'none';
+        if (this._container) {
+            this._container.classList.remove('active');
+        }
         this._clock.stopTick();
     }
 
@@ -63,36 +94,91 @@ export class JudgeOfficeView {
 
     static _render() {
         const el = this._container;
+        const rawScore  = window.game?.career?.getScore?.();
+        const rawRep    = window.game?.career?.getReputation?.('law');
+        const score     = (typeof rawScore  === 'number' && !isNaN(rawScore))  ? rawScore  : 0;
+        const repLaw    = (typeof rawRep    === 'number' && !isNaN(rawRep))    ? Math.round(rawRep) : 100;
+
         el.innerHTML = `
-            <!-- Шапка → часы + дата -->
-            <div id="jo-header" style="
+            <!-- ═══ ШАПКА ═══════════════════════════════════════════════════ -->
+            <div id="jo-topbar" style="
                 display:flex; align-items:center; justify-content:space-between;
-                padding:20px 32px; background:rgba(0,0,0,.35); border-bottom:1px solid #334155;
+                padding:0 28px; height:64px;
+                background:rgba(0,0,0,.5);
+                border-bottom:1px solid #1e3a58;
+                backdrop-filter:blur(12px);
+                flex-shrink:0;
             ">
-                <div>
-                    <div style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#64748b;margin-bottom:4px">Федеральный суд</div>
-                    <div style="font-size:1.4rem;font-weight:700;color:#f8fafc">⚖️ Кабинет судьи</div>
+                <!-- Лого -->
+                <div style="display:flex;align-items:center;gap:12px">
+                    <div style="
+                        width:38px;height:38px;border-radius:10px;
+                        background:linear-gradient(135deg,#1d4ed8,#7c3aed);
+                        display:flex;align-items:center;justify-content:center;font-size:20px
+                    ">⚖️</div>
+                    <div>
+                        <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#475569">Федеральный суд</div>
+                        <div style="font-size:15px;font-weight:700;color:#f1f5f9">Кабинет судьи</div>
+                    </div>
                 </div>
-                <div id="jo-clock" style="text-align:right"></div>
+
+                <!-- Часы + дата -->
+                <div id="jo-clock" style="text-align:center"></div>
+
+                <!-- Статус -->
+                <div style="display:flex;gap:16px;align-items:center">
+                    <div style="text-align:right">
+                        <div style="font-size:11px;color:#475569;text-transform:uppercase;letter-spacing:1px">Репутация</div>
+                        <div style="font-size:16px;font-weight:700;color:${repLaw >= 70 ? '#22c55e' : repLaw >= 40 ? '#f59e0b' : '#ef4444'}">${repLaw}%</div>
+                    </div>
+                    <div style="text-align:right">
+                        <div style="font-size:11px;color:#475569;text-transform:uppercase;letter-spacing:1px">Счёт</div>
+                        <div style="font-size:16px;font-weight:700;color:#38bdf8">${score}</div>
+                    </div>
+                </div>
             </div>
 
-            <!-- Основной контент -->
-            <div style="display:grid;grid-template-columns:280px 1fr;flex:1;gap:0">
-
-                <!-- Левая колонка: календарь + расписание -->
-                <div style="padding:24px 20px;border-right:1px solid #334155;display:flex;flex-direction:column;gap:20px">
+            <!-- ═══ ОСНОВНОЙ КОНТЕНТ ════════════════════════════════════════ -->
+            <div style="
+                display:grid;
+                grid-template-columns:300px 1fr;
+                flex:1;
+                overflow:hidden;
+                height:calc(100vh - 64px);
+            ">
+                <!-- Левая панель -->
+                <div style="
+                    padding:20px 18px;
+                    border-right:1px solid #1e3a58;
+                    overflow-y:auto;
+                    display:flex;
+                    flex-direction:column;
+                    gap:18px;
+                    background:rgba(0,0,0,.15);
+                ">
                     <div id="jo-calendar"></div>
                     <div id="jo-schedule"></div>
                 </div>
 
-                <!-- Правая колонка: список дел -->
-                <div style="padding:24px 28px;overflow-y:auto">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-                        <h3 style="margin:0;font-size:1.1rem">📁 Входящие дела</h3>
+                <!-- Правая панель: список дел -->
+                <div style="
+                    padding:20px 24px;
+                    overflow-y:auto;
+                ">
+                    <div style="
+                        display:flex;justify-content:space-between;align-items:center;
+                        margin-bottom:14px;
+                    ">
+                        <div>
+                            <div style="font-size:18px;font-weight:700;color:#f1f5f9">📁 Входящие дела</div>
+                            <div style="font-size:12px;color:#475569;margin-top:2px">Выберите дело для слушания</div>
+                        </div>
                         <button id="jo-refresh-btn" style="
-                            background:#1d4ed8;color:#fff;border:none;border-radius:8px;
-                            padding:8px 18px;cursor:pointer;font-size:13px;font-family:inherit;
-                            transition:background .2s
+                            background:rgba(29,78,216,.2);color:#60a5fa;
+                            border:1px solid #1d4ed8;border-radius:8px;
+                            padding:8px 16px;cursor:pointer;font-size:13px;
+                            font-family:inherit;font-weight:600;
+                            transition:background .2s;white-space:nowrap;
                         ">🔄 Обновить очередь</button>
                     </div>
                     <div id="jo-cases-list"></div>
@@ -118,16 +204,18 @@ export class JudgeOfficeView {
         if (!el) return;
         const next = this._scheduler.getNext();
         const nextStr = next
-            ? `<div style="font-size:11px;color:#94a3b8;margin-top:4px">Ближайшее: ${this._formatGameDate(next.scheduledAt)}</div>`
+            ? `<div style="font-size:10px;color:#6366f1;white-space:nowrap">📅 ${this._formatGameDate(next.scheduledAt)}</div>`
             : '';
         el.innerHTML = `
-            <div style="font-size:2.8rem;font-weight:800;color:#38bdf8;line-height:1;font-variant-numeric:tabular-nums">
-                ${this._clock.getTimeFormatted()}
+            <div style="display:flex;align-items:center;gap:16px">
+                <div style="font-size:2rem;font-weight:800;color:#38bdf8;font-variant-numeric:tabular-nums;line-height:1">
+                    ${this._clock.getTimeFormatted()}
+                </div>
+                <div>
+                    <div style="font-size:11px;color:#94a3b8;white-space:nowrap">${this._clock.getDateFormatted()}</div>
+                    ${nextStr}
+                </div>
             </div>
-            <div style="font-size:13px;color:#94a3b8;margin-top:4px;text-align:right">
-                ${this._clock.getDateFormatted()}
-            </div>
-            ${nextStr}
         `;
     }
 
@@ -250,7 +338,7 @@ export class JudgeOfficeView {
                     <div style="flex:1;min-width:0">
                         <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;flex-wrap:wrap">
                             <span style="background:${color}22;color:${color};border:1px solid ${color};border-radius:100px;padding:2px 10px;font-size:11px;font-weight:700;white-space:nowrap">
-                                ${cd.label || cd.type}
+                                ${cd.label || TYPE_LABELS_RU[cd.type] || cd.type}
                             </span>
                             <span style="font-size:12px;color:#64748b">Дело № ${cd.id?.slice(-8) ?? '—'}</span>
                         </div>

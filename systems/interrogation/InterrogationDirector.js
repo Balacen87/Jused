@@ -204,7 +204,7 @@ export class InterrogationDirector {
             return {
                 questionType:  qtype,
                 questionLabel: qt.label,
-                text: qt.templates?.[0] ?? qt.template ?? '...',
+                text: QuestionEngine.buildText(qtype, {}),
                 reason: `Свидетель на стадии "${PressureEngine.STAGE_LABELS[bs]?.label}". Нанесите решающий удар.`,
                 tacticLabel: tactic?.label,
             };
@@ -216,7 +216,7 @@ export class InterrogationDirector {
             return {
                 questionType: 'sensory_check',
                 questionLabel: qt.label,
-                text: qt.templates?.[0] ?? qt.template ?? '...',
+                text: QuestionEngine.buildText('sensory_check', {}),
                 reason: 'Свидетель закрывается (низкий контакт). Задайте нейтральный вопрос для снижения защиты.',
                 tacticLabel: tactic?.label,
             };
@@ -231,7 +231,7 @@ export class InterrogationDirector {
             return {
                 questionType:  qtype,
                 questionLabel: qt.label,
-                text: qt.templates?.[0] ?? qt.template ?? '...',
+                text: QuestionEngine.buildText(qtype, {}),
                 reason: 'Вы только что вскрыли новую ложь. Ударьте по этому противоречию прямо сейчас.',
                 tacticLabel: tactic?.label,
             };
@@ -245,7 +245,7 @@ export class InterrogationDirector {
             return {
                 questionType:  qtype,
                 questionLabel: qt.label,
-                text: qt.templates?.[0] ?? qt.template ?? '...',
+                text: QuestionEngine.buildText(qtype, {}),
                 reason: 'Свидетель уклоняется от ответа. Сузьте вопрос до конкретной детали.',
                 tacticLabel: tactic?.label,
             };
@@ -259,7 +259,7 @@ export class InterrogationDirector {
             return {
                 questionType:  qtype,
                 questionLabel: qt.label,
-                text: qt.templates?.[0] ?? qt.template ?? '...',
+                text: QuestionEngine.buildText(qtype, {}),
                 reason: 'Анализ профиля показывает, что этот тип вопроса ударит по уязвимости свидетеля.',
                 tacticLabel: tactic?.label,
             };
@@ -274,7 +274,7 @@ export class InterrogationDirector {
         return {
             questionType:  qtype,
             questionLabel: qt?.label ?? qtype,
-            text:          qt?.templates?.[0] ?? qt?.template ?? '...',
+            text:          QuestionEngine.buildText(qtype, {}),
             reason:        `Фаза «${phaseMeta?.label}»: ${phaseMeta?.description}`,
             tacticLabel:   tactic?.label,
         };

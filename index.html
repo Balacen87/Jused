@@ -5,7 +5,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Судебный процесс — Симулятор судьи</title>
-    <link rel="stylesheet" href="style.css?v=26">
+    <link rel="stylesheet" href="style.css?v=27">
+    <style>
+        #judge-office {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 5000;
+            flex-direction: column;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            font-family: Inter, system-ui, sans-serif;
+            color: #e2e8f0;
+            overflow-y: auto;
+        }
+        #judge-office.active {
+            display: flex;
+        }
+    </style>
 
 
 
@@ -98,7 +114,7 @@
             console.error('[unhandledrejection]', e.reason);
         });
     </script>
-    <script type="module" src="main.js?v=12"></script>
+    <script type="module" src="main.js?v=13"></script>
 
 </body>
 

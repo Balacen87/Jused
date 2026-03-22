@@ -284,66 +284,84 @@ export class VerdictView {
     }
 
     static showResult(result, activeCase, element) {
-        const s              = activeCase.trueScenario;
-        const isCorrect      = result.isCorrect;
-        const headlineHTML   = result.headline ? `
-            <div class="newspaper-clip ${result.headline.sentiment}" style="
-                border-left:4px solid ${result.headline.sentiment === 'positive' ? '#27ae60' : '#c0392b'};
-                padding:10px 14px;background:${result.headline.sentiment === 'positive' ? '#f0fdf4' : '#fef2f2'};
-                border-radius:6px;margin-bottom:14px">
-                <div style="font-weight:700;font-size:14px">${result.headline.title}</div>
-                <div style="font-size:13px;margin-top:4px;color:#555">${result.headline.text}</div>
-            </div>` : '';
-
+        const s         = activeCase.trueScenario;
+        const isCorrect = result.isCorrect;
         const repLaw    = result.reputation?.law    || 0;
         const repShadow = result.reputation?.shadow  || 0;
 
-        // Детализация сценария
+        // Газетная вырезка
+        const headlineHTML = result.headline ? `
+            <div style="
+                border-left:4px solid ${result.headline.sentiment === 'positive' ? '#22c55e' : '#ef4444'};
+                padding:10px 14px;
+                background:${result.headline.sentiment === 'positive' ? 'rgba(34,197,94,.1)' : 'rgba(239,68,68,.1)'};
+                border-radius:6px;margin-bottom:14px;
+            ">
+                <div style="font-weight:700;font-size:14px;color:#f1f5f9">${result.headline.title}</div>
+                <div style="font-size:13px;margin-top:4px;color:#94a3b8">${result.headline.text}</div>
+            </div>` : '';
+
+        // Истинный сценарий
         const scenarioHTML = `
-            <div style="background:#f8f9fa;border-radius:8px;padding:12px;font-size:13px;line-height:1.8">
-                <strong>Истинный сценарий:</strong><br>
-                Обвиняемый был <strong>${s.isGuilty ? 'ВИНОВЕН' : 'НЕВИНОВЕН'}</strong>.<br>
-                Мотив: ${s.motive} &nbsp;·&nbsp; Метод: ${s.method}<br>
-                ${s.alibi ? `Алиби: «${s.alibi.claim}» — ${s.alibi.verified ? 'подтверждено' : 'не подтверждено'}` : ''}
+            <div style="
+                background:rgba(255,255,255,.06);border:1px solid #334155;
+                border-radius:8px;padding:14px;font-size:13px;line-height:1.8;color:#cbd5e1;
+                margin-bottom:16px;
+            ">
+                <div style="font-weight:700;color:#94a3b8;margin-bottom:6px;text-transform:uppercase;font-size:11px;letter-spacing:1px">Истинный сценарий</div>
+                Обвиняемый был <strong style="color:${s.isGuilty ? '#f87171' : '#4ade80'}">${s.isGuilty ? 'ВИНОВЕН' : 'НЕВИНОВЕН'}</strong>.<br>
+                Мотив: <span style="color:#e2e8f0">${s.motive}</span> &nbsp;·&nbsp; Метод: <span style="color:#e2e8f0">${s.method}</span><br>
+                ${s.alibi ? `Алиби: «${s.alibi.claim}» — <span style="color:${s.alibi.verified ? '#4ade80' : '#f87171'}">${s.alibi.verified ? 'подтверждено' : 'не подтверждено'}</span>` : ''}
             </div>`;
 
         element.innerHTML = `
-            <div class="result-card ${isCorrect ? 'success' : 'fail'}" style="
-                border-left:6px solid ${isCorrect ? '#27ae60' : '#c0392b'};
-                background:${isCorrect ? '#f0fdf4' : '#fef2f2'};
-                padding:18px;border-radius:10px;margin-top:8px">
-
+            <div style="
+                border-left:6px solid ${isCorrect ? '#22c55e' : '#ef4444'};
+                background:${isCorrect ? 'rgba(34,197,94,.08)' : 'rgba(239,68,68,.08)'};
+                border:1px solid ${isCorrect ? '#166534' : '#7f1d1d'};
+                border-left-width:6px;
+                padding:20px 22px;border-radius:12px;margin-top:10px;
+            ">
                 ${headlineHTML}
 
-                <h2 style="margin:0 0 6px;color:${isCorrect ? '#1e8449' : '#c0392b'}">
+                <h2 style="margin:0 0 6px;color:${isCorrect ? '#4ade80' : '#f87171'};font-size:1.2rem">
                     ${isCorrect ? '✅ ПРАВИЛЬНОЕ РЕШЕНИЕ' : '❌ СУДЕБНАЯ ОШИБКА'}
                 </h2>
-                <p style="font-size:14px;color:#555;margin:0 0 12px">${result.feedback || result.message}</p>
+                <p style="font-size:14px;color:#cbd5e1;margin:0 0 16px;line-height:1.6">${result.feedback || result.message || ''}</p>
 
-                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0;font-size:13px">
-                    <div style="background:#fff;border-radius:8px;padding:10px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.06)">
-                        <div style="font-size:1.3em;font-weight:700;color:#2c3e50">+${result.score}</div>
-                        <div style="color:#888">Очков</div>
+                <!-- Метрики -->
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px">
+                    <div style="background:rgba(255,255,255,.07);border:1px solid #334155;border-radius:8px;padding:12px;text-align:center">
+                        <div style="font-size:1.4em;font-weight:800;color:#38bdf8">+${result.score}</div>
+                        <div style="font-size:11px;color:#64748b;margin-top:2px">Очков</div>
                     </div>
-                    <div style="background:#fff;border-radius:8px;padding:10px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.06)">
-                        <div style="font-size:1.3em;font-weight:700;color:${repLaw >= 0 ? '#27ae60' : '#c0392b'}">${repLaw > 0 ? '+' : ''}${repLaw}%</div>
-                        <div style="color:#888">⚖️ Закон</div>
+                    <div style="background:rgba(255,255,255,.07);border:1px solid #334155;border-radius:8px;padding:12px;text-align:center">
+                        <div style="font-size:1.4em;font-weight:800;color:${repLaw >= 0 ? '#4ade80' : '#f87171'}">${repLaw > 0 ? '+' : ''}${repLaw}%</div>
+                        <div style="font-size:11px;color:#64748b;margin-top:2px">⚖️ Закон</div>
                     </div>
-                    <div style="background:#fff;border-radius:8px;padding:10px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.06)">
-                        <div style="font-size:1.3em;font-weight:700;color:${repShadow >= 0 ? '#8e44ad' : '#c0392b'}">${repShadow > 0 ? '+' : ''}${repShadow}%</div>
-                        <div style="color:#888">💰 Тени</div>
+                    <div style="background:rgba(255,255,255,.07);border:1px solid #334155;border-radius:8px;padding:12px;text-align:center">
+                        <div style="font-size:1.4em;font-weight:800;color:${repShadow >= 0 ? '#c084fc' : '#f87171'}">${repShadow > 0 ? '+' : ''}${repShadow}%</div>
+                        <div style="font-size:11px;color:#64748b;margin-top:2px">💰 Тени</div>
                     </div>
                 </div>
 
                 ${scenarioHTML}
 
-                <div style="display:flex;gap:10px;margin-top:16px">
-                    <button id="next-case-btn" class="main-btn" style="flex:2">
-                        ▶️ Следующее дело
-                    </button>
-                    <button id="cabinet-after-verdict-btn" class="main-btn" style="flex:1;background:#2c3e50">
-                        👤 В кабинет
-                    </button>
+                <div style="display:flex;gap:10px;margin-top:8px">
+                    <button id="next-case-btn" style="
+                        flex:2;padding:13px;
+                        background:linear-gradient(135deg,#1d4ed8,#2563eb);
+                        color:#fff;border:none;border-radius:8px;cursor:pointer;
+                        font-family:inherit;font-weight:700;font-size:14px;
+                        transition:transform .15s
+                    ">▶️ Следующее дело</button>
+                    <button id="cabinet-after-verdict-btn" style="
+                        flex:1;padding:13px;
+                        background:rgba(255,255,255,.07);color:#94a3b8;
+                        border:1px solid #334155;border-radius:8px;cursor:pointer;
+                        font-family:inherit;font-weight:600;font-size:14px;
+                        transition:background .2s
+                    ">👤 В кабинет</button>
                 </div>
             </div>
         `;
@@ -354,5 +372,11 @@ export class VerdictView {
         element.querySelector('#next-case-btn')?.addEventListener('click', () => {
             window.game?.showOffice();
         });
+        // Ховер-эффекты
+        const nextBtn = element.querySelector('#next-case-btn');
+        if (nextBtn) {
+            nextBtn.onmouseenter = () => { nextBtn.style.transform = 'scale(1.02)'; };
+            nextBtn.onmouseleave = () => { nextBtn.style.transform = 'scale(1)'; };
+        }
     }
 }
